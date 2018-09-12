@@ -1,48 +1,58 @@
-(function() {
+(function () {
 'use strict';
 
-angular.module("LunchCheck", [])
-  .controller("LunchCheckController", LunchCheckController);
+angular.module("ShoppingListCheckOff", [])
+  .controller("ToBuyController", ToBuyController)
+  .controller("AlreadyBoughtController", AlreadyBoughtController)
+  .service("ShoppingList", ShoppingListCheckOffService)
 
-LunchCheckController.$inject = ["$scope"];
-function LunchCheckController($scope) {
-    $scope.lunchItems = "";
-    $scope.result = "";
-    // Used to color the text box based on the result
-    $scope.validationClass = "";
+ToBuyController.$inject = ["ShoppingList"];
+function ToBuyController(ShoppingList) {
+  var toBuy = this;
 
-    // Function called with ng-click to process the items and update the result
-    $scope.displayResult = function() {
-        $scope.result = processItems($scope.lunchItems);
-        $scope.validationClass = $scope.result.valid ? "valid" : "invalid";
-    }
+  toBuy.list = ShoppingList.getToBuy();
+
+  toBuy.buy = function(itemIndex) {
+    ShoppingList.buyItem(itemIndex);
+  }
 }
 
-// Takes a string of comma separated items and returns a result object based on
-// the number of items found. The result object should be in the shape of:
-//     { msg: "Message here", valid: true }
-function processItems(itemString) {
-    var emptyMsg = "Please enter data first";
-    var goodMsg = "Enjoy!";
-    var tooMuchMsg = "Too much!";
+AlreadyBoughtController.$inject = ["ShoppingList"];
+function AlreadyBoughtController(ShoppingList) {
+  var alreadyBought = this;
 
-    // Empty string? don't bother to process
-    if (itemString === "") {
-        return { msg: emptyMsg, valid: false };
-    }
-
-    var itemList = itemString.split(",").filter(notEmpty);
-    if (itemList.length <= 3) {
-        return { msg: goodMsg, valid: true };
-    } else {
-        return { msg: tooMuchMsg, valid: true };
-    }
+  alreadyBought.list = ShoppingList.getBought();
 }
 
-// Helper function used to process the list of items, returning true if the
-// given string is NOT blank
-function notEmpty(string) {
-    return string.trim() !== "" ? true : false;
+function ShoppingListCheckOffService() {
+  var ShoppingList = this;
+
+  var toBuy = [
+    {name: "Chips", quantity: 2},
+    {name: "Cookies", quantity: 2},
+    {name: "Soda", quantity: 12},
+    {name: "Flour", quantity: 1},
+    {name: "Milk", quantity: 1},
+    {name: "Butter", quantity: 2},
+    {name: "Lemons", quantity: 10},
+    {name: "Limes", quantity: 10},
+    {name: "Oranges", quantity: 10},
+  ];
+
+  var alreadyBought = [];
+
+  ShoppingList.buyItem = function(itemIndex) {
+    var boughtItem = toBuy.splice(itemIndex, 1)[0];
+    alreadyBought.push(boughtItem);
+  }
+
+  ShoppingList.getToBuy = function() {
+    return toBuy;
+  }
+
+  ShoppingList.getBought = function() {
+    return alreadyBought;
+  }
 }
 
 })();
